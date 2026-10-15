@@ -1,0 +1,1474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>StudyPulse – Smart Student Productivity Analyzer</title>
+  <style>
+    :root {
+      --paper: #f4efe6;
+      --card: #fffdf8;
+      --ink: #1b2a4a;
+      --muted: #5c6b84;
+      --line: #e4d9c8;
+      --teal: #0f6e6b;
+      --teal-soft: #e6f3f2;
+      --navy: #1b2a4a;
+      --shadow: 0 10px 28px rgba(27, 42, 74, 0.06);
+      --radius: 16px;
+      --danger: #8c3a32;
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body { margin: 0; padding: 0; }
+
+    body {
+      min-height: 100vh;
+      background: var(--paper);
+      color: var(--ink);
+      font-family: "Segoe UI", "Avenir Next", "Noto Sans", sans-serif;
+      font-size: 16px;
+      line-height: 1.5;
+    }
+
+    h1, h2, h3, .logo-word {
+      font-family: Palatino, "Palatino Linotype", Georgia, serif;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      line-height: 1.2;
+    }
+
+    button, input, select { font: inherit; color: inherit; }
+
+    button { cursor: pointer; }
+
+    :focus-visible {
+      outline: 2px solid var(--teal);
+      outline-offset: 2px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 232px 1fr;
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      padding: 22px 16px;
+      border-right: 1px solid var(--line);
+      background: #fbf7f0;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+    }
+
+    .brand {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 22px;
+    }
+
+    .logo-mark { width: 40px; height: 40px; flex: none; }
+
+    .logo-word { margin: 0; font-size: 1.35rem; }
+    .logo-word span { color: var(--teal); }
+
+    .brand small, .kicker {
+      display: block;
+      color: var(--teal);
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+    }
+
+    .brand small { color: var(--muted); letter-spacing: 0.04em; text-transform: none; font-weight: 600; }
+
+    .side-nav, .tabbar { display: flex; gap: 6px; }
+
+    .side-nav { flex-direction: column; }
+
+    .nav-btn, .tabbar button {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-height: 44px;
+      border: 0;
+      background: transparent;
+      color: var(--muted);
+      border-radius: 12px;
+      text-align: left;
+      padding: 8px 10px;
+    }
+
+    .nav-btn svg, .tabbar svg { width: 20px; height: 20px; flex: none; }
+
+    .nav-btn.is-active, .tabbar button.is-active {
+      background: var(--teal-soft);
+      color: var(--teal);
+      font-weight: 700;
+    }
+
+    .side-note {
+      margin-top: 28px;
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      color: var(--muted);
+      font-size: 0.85rem;
+    }
+
+    .content {
+      width: min(920px, 100%);
+      margin: 0 auto;
+      padding: 28px 22px 40px;
+    }
+
+    .page-head h1 { margin: 4px 0 0; font-size: 1.85rem; }
+    .page-head p { margin: 6px 0 0; color: var(--muted); }
+
+    .mobile-brand { display: none; }
+
+    .view { animation: rise 0.22s ease; }
+
+    @keyframes rise {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: none; }
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 16px;
+    }
+
+    .stat strong {
+      display: block;
+      margin-top: 4px;
+      font-family: Palatino, Georgia, serif;
+      font-size: 1.55rem;
+    }
+
+    .stat span, .muted { color: var(--muted); }
+
+    .progress-card, .split {
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: 16px;
+      align-items: center;
+    }
+
+    .stack { display: grid; gap: 12px; margin-top: 12px; }
+
+    .ring-wrap { position: relative; width: 118px; height: 118px; }
+
+    .ring { width: 118px; height: 118px; }
+
+    .ring-track, .ring-value { fill: none; stroke-width: 10; }
+    .ring-track { stroke: #e6eee9; }
+    .ring-value {
+      stroke: var(--teal);
+      stroke-linecap: round;
+      transform: rotate(-90deg);
+      transform-origin: 60px 60px;
+      transition: stroke-dashoffset 0.35s ease;
+    }
+
+    .ring-label {
+      position: absolute;
+      inset: 0;
+      display: grid;
+      place-content: center;
+      text-align: center;
+    }
+
+    .ring-label strong {
+      font-family: Palatino, Georgia, serif;
+      font-size: 1.35rem;
+    }
+
+    .ring-label span { color: var(--muted); font-size: 0.75rem; }
+
+    .quote { margin: 8px 0 0; font-size: 1.02rem; }
+
+    .linkish {
+      border: 0;
+      background: transparent;
+      color: var(--teal);
+      font-weight: 700;
+      padding: 0;
+      min-height: 44px;
+    }
+
+    .form-grid, .goal-grid {
+      display: grid;
+      gap: 12px;
+    }
+
+    label { display: grid; gap: 6px; font-size: 0.92rem; font-weight: 650; }
+
+    input, select {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid #d5cbbd;
+      background: #fff;
+    }
+
+    .filters, .segment, .timer-actions, .row-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip, .btn, .icon-btn {
+      min-height: 44px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 8px 12px;
+    }
+
+    .chip.is-active, .segment button[aria-pressed="true"] {
+      background: var(--navy);
+      color: #f7f3ea;
+      border-color: var(--navy);
+    }
+
+    .btn-primary {
+      background: var(--teal);
+      color: #f4fffe;
+      border-color: var(--teal);
+      font-weight: 700;
+    }
+
+    .btn-ghost { background: transparent; }
+
+    .btn-danger {
+      background: #fff;
+      color: var(--danger);
+      border-color: #efd4d0;
+    }
+
+    .task {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      padding: 12px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .task:first-child { border-top: 0; padding-top: 0; }
+
+    .task h3 { margin: 0 0 4px; font-size: 1.05rem; overflow-wrap: anywhere; }
+
+    .task.is-done h3 { text-decoration: line-through; color: var(--muted); }
+
+    .meta { display: flex; flex-wrap: wrap; gap: 6px; color: var(--muted); font-size: 0.86rem; }
+
+    .badge {
+      border-radius: 999px;
+      padding: 2px 8px;
+      border: 1px solid var(--line);
+      background: #f7f3ea;
+    }
+
+    .badge.high { color: #7a3e2e; background: #f8ebe3; border-color: #efd4c8; }
+    .badge.overdue { color: var(--danger); }
+
+    .empty { padding: 8px 0 4px; color: var(--muted); }
+    .empty strong { display: block; color: var(--ink); font-size: 1.05rem; margin-bottom: 4px; }
+
+    .clock {
+      margin: 8px 0;
+      text-align: center;
+      font-family: Palatino, Georgia, serif;
+      font-size: clamp(3.2rem, 12vw, 5rem);
+      font-variant-numeric: tabular-nums;
+      letter-spacing: 0.03em;
+    }
+
+    .center { text-align: center; }
+    .timer-actions { margin-top: 8px; }
+    .timer-actions .btn { flex: 1 1 140px; }
+
+    .session-list { margin: 8px 0 0; padding-left: 18px; }
+    .session-list li { margin: 4px 0; }
+
+    .chart-wrap { width: 100%; overflow: hidden; }
+    #week-chart { width: 100%; height: 220px; display: block; }
+
+    .week-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+    .week-table th, .week-table td {
+      text-align: left;
+      padding: 8px 4px;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .bar {
+      height: 12px;
+      background: #e7efe9;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar span {
+      display: block;
+      height: 100%;
+      width: 0;
+      background: var(--teal);
+      border-radius: inherit;
+    }
+
+    .tabbar {
+      display: none;
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      z-index: 5;
+      background: #fffdf8;
+      border-top: 1px solid var(--line);
+      padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+      justify-content: space-around;
+    }
+
+    .tabbar button {
+      flex: 1;
+      flex-direction: column;
+      gap: 2px;
+      font-size: 0.68rem;
+      padding: 4px 2px;
+      min-height: 52px;
+      justify-content: center;
+    }
+
+    .toast {
+      position: fixed;
+      left: 50%;
+      top: 14px;
+      transform: translateX(-50%);
+      z-index: 20;
+      width: min(440px, calc(100% - 24px));
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: var(--navy);
+      color: #f7f3ea;
+      box-shadow: var(--shadow);
+    }
+
+    .toast.error { background: #6e322c; }
+
+    dialog {
+      width: min(420px, calc(100% - 28px));
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 18px;
+      background: var(--card);
+      color: var(--ink);
+    }
+
+    dialog::backdrop { background: rgba(27, 42, 74, 0.4); }
+
+    .explain { margin-top: 12px; color: var(--muted); }
+    .explain summary { cursor: pointer; color: var(--ink); font-weight: 700; min-height: 44px; display: flex; align-items: center; }
+
+    .foot {
+      margin-top: 22px;
+      color: var(--muted);
+      font-size: 0.82rem;
+    }
+
+    @media (max-width: 820px) {
+      .layout { grid-template-columns: 1fr; }
+      .sidebar { display: none; }
+      .mobile-brand { display: flex; margin-bottom: 8px; }
+      .tabbar { display: flex; }
+      .content { padding: 16px 14px calc(92px + env(safe-area-inset-bottom)); }
+      .page-head h1 { font-size: 1.55rem; }
+      .progress-card { grid-template-columns: 1fr; justify-items: center; text-align: center; }
+      .form-grid.two, .goal-grid.two { grid-template-columns: 1fr; }
+    }
+
+    @media (min-width: 821px) {
+      .stats { grid-template-columns: repeat(4, 1fr); }
+      .form-grid.two, .goal-grid.two { grid-template-columns: 1fr 1fr; }
+      .stack.two { grid-template-columns: 1.2fr 0.8fr; }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .view, .ring-value { animation: none; transition: none; }
+    }
+  </style>
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <div class="brand">
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="10" fill="#1b2a4a"></rect>
+          <path d="M8 24h6l3-8 4 14 3-10h8" fill="none" stroke="#f4efe6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <circle cx="30" cy="12" r="2.2" fill="#7ec8c3"></circle>
+        </svg>
+        <div>
+          <p class="logo-word">Study<span>Pulse</span></p>
+          <small>WT lab mini-project</small>
+        </div>
+      </div>
+      <nav class="side-nav" aria-label="Main">
+        <button class="nav-btn is-active" type="button" data-nav="dashboard" aria-current="page">Dashboard</button>
+        <button class="nav-btn" type="button" data-nav="tasks">Tasks</button>
+        <button class="nav-btn" type="button" data-nav="focus">Focus</button>
+        <button class="nav-btn" type="button" data-nav="insights">Insights</button>
+        <button class="nav-btn" type="button" data-nav="goals">Goals</button>
+      </nav>
+      <p class="side-note">Numbers on this page come only from tasks and timers you finish. Nothing is preloaded.</p>
+    </aside>
+
+    <div class="content">
+      <div class="mobile-brand brand">
+        <svg class="logo-mark" viewBox="0 0 40 40" aria-hidden="true">
+          <rect width="40" height="40" rx="10" fill="#1b2a4a"></rect>
+          <path d="M8 24h6l3-8 4 14 3-10h8" fill="none" stroke="#f4efe6" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+          <circle cx="30" cy="12" r="2.2" fill="#7ec8c3"></circle>
+        </svg>
+        <div>
+          <p class="logo-word">Study<span>Pulse</span></p>
+          <small>Smart Student Productivity Analyzer</small>
+        </div>
+      </div>
+
+      <header class="page-head">
+        <p class="kicker" id="today-label">Today</p>
+        <h1 id="welcome">Hello</h1>
+        <p id="welcome-note">Plan the work, then keep the record honest.</p>
+      </header>
+
+      <main>
+        <section id="view-dashboard" class="view" aria-label="Dashboard">
+          <div class="stats">
+            <article class="card stat"><span>Total tasks</span><strong id="stat-total">0</strong></article>
+            <article class="card stat"><span>Completed</span><strong id="stat-done">0</strong></article>
+            <article class="card stat"><span>Study time today</span><strong id="stat-time">0 min</strong></article>
+            <article class="card stat"><span>Daily progress</span><strong id="stat-progress">—</strong></article>
+          </div>
+
+          <article class="card progress-card">
+            <div class="ring-wrap">
+              <svg class="ring" viewBox="0 0 120 120" aria-hidden="true">
+                <circle class="ring-track" cx="60" cy="60" r="52"></circle>
+                <circle class="ring-value" id="ring-value" cx="60" cy="60" r="52"></circle>
+              </svg>
+              <div class="ring-label">
+                <strong id="ring-percent">—</strong>
+                <span>tasks done</span>
+              </div>
+            </div>
+            <div>
+              <p class="kicker">Today’s note</p>
+              <p class="quote" id="motivation">Add a task to begin.</p>
+              <button class="linkish" type="button" data-nav="tasks">Open task manager</button>
+            </div>
+          </article>
+
+          <div class="stack two">
+            <article class="card">
+              <p class="kicker">Still pending</p>
+              <div id="dash-pending"></div>
+            </article>
+            <article class="card">
+              <p class="kicker">Study goal</p>
+              <p id="dash-goal">No daily goal yet.</p>
+              <div class="bar" id="dash-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Progress toward daily study goal">
+                <span id="dash-fill"></span>
+              </div>
+              <button class="linkish" type="button" data-nav="goals">Set or edit goal</button>
+            </article>
+          </div>
+        </section>
+
+        <section id="view-tasks" class="view" aria-label="Task manager" hidden>
+          <article class="card">
+            <h2>Add a task</h2>
+            <form id="task-form" class="form-grid two">
+              <label>Title
+                <input id="task-title" name="title" type="text" maxlength="80" placeholder="Revise normalization" required>
+              </label>
+              <label>Subject
+                <input id="task-subject" name="subject" type="text" maxlength="40" list="subject-list" placeholder="DBMS" required>
+              </label>
+              <label>Priority
+                <select id="task-priority" name="priority">
+                  <option value="high">High</option>
+                  <option value="medium" selected>Medium</option>
+                  <option value="low">Low</option>
+                </select>
+              </label>
+              <label>Deadline
+                <input id="task-deadline" name="deadline" type="date" required>
+              </label>
+              <div>
+                <button class="btn btn-primary" type="submit">Add task</button>
+              </div>
+            </form>
+            <datalist id="subject-list"></datalist>
+          </article>
+
+          <article class="card" style="margin-top:12px">
+            <div class="filters" role="group" aria-label="Filter tasks">
+              <button class="chip is-active" type="button" data-filter="all">All</button>
+              <button class="chip" type="button" data-filter="pending">Pending</button>
+              <button class="chip" type="button" data-filter="completed">Completed</button>
+            </div>
+            <div id="task-list" style="margin-top:12px"></div>
+          </article>
+        </section>
+
+        <section id="view-focus" class="view" aria-label="Study focus timer" hidden>
+          <article class="card">
+            <h2>Focus timer</h2>
+            <p class="muted">Study time is saved only when a focus countdown reaches 00:00. Pause and reset do not add minutes.</p>
+            <div class="segment" role="group" aria-label="Session length" style="margin-top:12px">
+              <button class="chip" type="button" data-mode="focus" aria-pressed="true">25 min focus</button>
+              <button class="chip" type="button" data-mode="break" aria-pressed="false">5 min break</button>
+              <button class="chip" type="button" data-mode="demo" aria-pressed="false">1 min demo</button>
+            </div>
+            <p class="clock" id="clock" aria-live="polite">25:00</p>
+            <p class="center" id="timer-status">Ready</p>
+            <div class="timer-actions">
+              <button class="btn btn-primary" type="button" id="btn-start">Start</button>
+              <button class="btn" type="button" id="btn-pause">Pause</button>
+              <button class="btn" type="button" id="btn-resume">Resume</button>
+              <button class="btn btn-ghost" type="button" id="btn-reset">Reset</button>
+            </div>
+          </article>
+          <article class="card" style="margin-top:12px">
+            <h2>Completed today</h2>
+            <div id="today-sessions"></div>
+          </article>
+        </section>
+
+        <section id="view-insights" class="view" aria-label="Productivity insights" hidden>
+          <article class="card">
+            <h2>Productivity summary</h2>
+            <p id="summary">No activity yet.</p>
+          </article>
+          <div class="stats">
+            <article class="card stat"><span>Completion</span><strong id="insight-percent">—</strong></article>
+            <article class="card stat"><span>Focus sessions today</span><strong id="insight-sessions">0</strong></article>
+            <article class="card stat"><span>Study time today</span><strong id="insight-time">0 min</strong></article>
+            <article class="card stat"><span>This week</span><strong id="insight-week">0 min</strong></article>
+          </div>
+          <article class="card">
+            <h2>Weekly study time</h2>
+            <p class="muted" id="chart-note">Each bar is completed focus time for that day.</p>
+            <div class="chart-wrap">
+              <canvas id="week-chart" width="640" height="220" role="img" aria-label="Bar chart of study minutes for the last seven days"></canvas>
+            </div>
+            <table class="week-table">
+              <caption class="muted" style="text-align:left;caption-side:bottom">Same numbers as the chart, listed for reading.</caption>
+              <thead>
+                <tr><th scope="col">Day</th><th scope="col">Study time</th></tr>
+              </thead>
+              <tbody id="week-body"></tbody>
+            </table>
+            **Summary:**
+How these numbers are calculated
+              <ul>
+                <li>Daily progress = completed tasks ÷ total tasks × 100.</li>
+                <li>If the task list is empty, progress stays blank instead of a fake zero.</li>
+                <li>A focus session is stored only when the countdown reaches 00:00.</li>
+                <li>Breaks are listed, but they are not added to study time.</li>
+                <li>The chart uses the last 7 local days. Missing days stay at 0 min.</li>
+              </ul>
+          </article>
+        </section>
+
+        <section id="view-goals" class="view" aria-label="Personal study goals" hidden>
+          <article class="card">
+            <h2>What should we call you?</h2>
+            <form id="name-form" class="form-grid">
+              <label>Display name
+                <input id="student-name" type="text" maxlength="30" placeholder="Optional, for the welcome line">
+              </label>
+              <div><button class="btn btn-primary" type="submit">Save name</button></div>
+            </form>
+          </article>
+          <article class="card" style="margin-top:12px">
+            <h2>Daily study-time goal</h2>
+            <form id="goal-form" class="form-grid">
+              <label>Minutes to study today
+                <input id="goal-minutes" type="number" min="1" max="720" step="1" placeholder="120">
+              </label>
+              <div><button class="btn btn-primary" type="submit">Save goal</button></div>
+            </form>
+            <p id="goal-status" style="margin-top:12px">No goal saved yet.</p>
+            <div class="bar" id="goal-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" aria-label="Actual study time against the saved goal">
+              <span id="goal-fill"></span>
+            </div>
+          </article>
+          <article class="card" style="margin-top:12px">
+            <h2>Saved data</h2>
+            <p class="muted">Tasks, sessions, your name, and the goal are stored in this browser under the key <strong>studypulse-data</strong>. Refreshing the page keeps them. Another phone does not.</p>
+            <button class="btn btn-danger" type="button" id="btn-clear">Clear all data</button>
+          </article>
+        </section>
+      </main>
+      <p class="foot">StudyPulse · Web Technology mini-project · CSE practical · Data stays on this device.</p>
+    </div>
+  </div>
+
+  <nav class="tabbar" aria-label="Mobile">
+    <button type="button" data-nav="dashboard" class="is-active" aria-current="page">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 10.5 12 4l8 6.5V20a1 1 0 0 1-1 1h-5v-6H10v6H5a1 1 0 0 1-1-1v-9.5z"/></svg>
+      Home
+    </button>
+    <button type="button" data-nav="tasks">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 11.2 6.8 9 5.4 10.4 9 14l9-9-1.4-1.4L9 11.2zM5 5h2V3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5h-2v14H5V5z"/></svg>
+      Tasks
+    </button>
+    <button type="button" data-nav="focus">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 .01 20.01A10 10 0 0 0 12 2zm1 11h5v-2h-4V6h-2v7h1z"/></svg>
+      Focus
+    </button>
+    <button type="button" data-nav="insights">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 19h16v2H4v-2zm2-2h2V9H6v8zm5 0h2V5h-2v12zm5 0h2v-6h-2v6z"/></svg>
+      Insights
+    </button>
+    <button type="button" data-nav="goals">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2a10 10 0 1 0 .01 20.01A10 10 0 0 0 12 2zm0 4a6 6 0 1 1 0 12 6 6 0 0 1 0-12zm0 3a3 3 0 1 0 .01 6.01A3 3 0 0 0 12 9z"/></svg>
+      Goals
+    </button>
+  </nav>
+
+  <div id="toast" class="toast" role="status" hidden></div>
+
+  <dialog id="clear-dialog" aria-labelledby="clear-title">
+    <h3 id="clear-title">Clear all StudyPulse data?</h3>
+    <p>Tasks, focus sessions, your name, and the daily goal will be removed from this browser. This cannot be undone.</p>
+    <div class="row-actions">
+      <button class="btn" type="button" id="clear-cancel">Keep data</button>
+      <button class="btn btn-danger" type="button" id="clear-confirm">Clear everything</button>
+    </div>
+  </dialog>
+
+  <script>
+    /* StudyPulse
+       One state object, saved as JSON in localStorage.
+       The page redraws from that object after every change.
+    */
+
+    var STORAGE_KEY = "studypulse-data";
+    var RING = 2 * Math.PI * 52;
+    var MODE_MINUTES = { focus: 25, break: 5, demo: 1 };
+
+    var state = emptyState();
+    var currentView = "dashboard";
+    var currentFilter = "all";
+    var messageTimer = null;
+    var timer = freshTimer("focus");
+
+    function emptyState() {
+      return { tasks: [], sessions: [], goalMinutes: null, studentName: "" };
+    }
+
+    function freshTimer(mode) {
+      var minutes = MODE_MINUTES[mode] || 25;
+      return {
+        mode: mode,
+        plannedMinutes: minutes,
+        remaining: minutes * 60,
+        running: false,
+        finished: false,
+        intervalId: null
+      };
+    }
+
+    function makeId() {
+      return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+    }
+
+    function todayKey(date) {
+      var d = date || new Date();
+      var month = String(d.getMonth() + 1);
+      var day = String(d.getDate());
+      if (month.length < 2) month = "0" + month;
+      if (day.length < 2) day = "0" + day;
+      return d.getFullYear() + "-" + month + "-" + day;
+    }
+
+    function escapeHtml(value) {
+      var amp = String.fromCharCode(38);
+      return String(value)
+        .replace(new RegExp(amp, "g"), amp + "amp;")
+        .replace(/</g, amp + "lt;")
+        .replace(/>/g, amp + "gt;")
+        .replace(/"/g, amp + "quot;")
+        .replace(/'/g, amp + "#39;");
+    }
+
+    function formatMinutes(total) {
+      var minutes = Math.max(0, Math.round(Number(total) || 0));
+      var hours = Math.floor(minutes / 60);
+      var rest = minutes % 60;
+      if (hours === 0) return rest + " min";
+      if (rest === 0) return hours + " h";
+      return hours + " h " + rest + " min";
+    }
+
+    function formatClock(totalSeconds) {
+      var safe = Math.max(0, Math.floor(Number(totalSeconds) || 0));
+      var m = Math.floor(safe / 60);
+      var s = safe % 60;
+      var mm = m < 10 ? "0" + m : String(m);
+      var ss = s < 10 ? "0" + s : String(s);
+      return mm + ":" + ss;
+    }
+
+    function prettyDate(iso) {
+      var parts = String(iso).split("-");
+      if (parts.length !== 3) return iso;
+      var date = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+      return date.toLocaleDateString("en-IN", { day: "numeric", month: "short" });
+    }
+
+    function greeting() {
+      var hour = new Date().getHours();
+      if (hour < 12) return "Good morning";
+      if (hour < 17) return "Good afternoon";
+      return "Good evening";
+    }
+
+    function isValidTask(task) {
+      return task && typeof task.id === "string" && typeof task.title === "string"
+        && typeof task.subject === "string"
+        && (task.priority === "low" || task.priority === "medium" || task.priority === "high")
+        && typeof task.deadline === "string" && typeof task.completed === "boolean";
+    }
+
+    function isValidSession(session) {
+      return session && typeof session.id === "string"
+        && (session.mode === "focus" || session.mode === "break")
+        && typeof session.minutes === "number" && isFinite(session.minutes)
+        && session.minutes > 0 && session.minutes <= 720
+        && typeof session.completedOn === "string"
+        && /^\d{4}-\d{2}-\d{2}$/.test(session.completedOn);
+    }
+
+    function loadState() {
+      var blank = emptyState();
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) return blank;
+        var data = JSON.parse(raw);
+        if (!data || typeof data !== "object") return blank;
+        blank.tasks = Array.isArray(data.tasks) ? data.tasks.filter(isValidTask) : [];
+        blank.sessions = Array.isArray(data.sessions) ? data.sessions.filter(isValidSession) : [];
+        if (typeof data.goalMinutes === "number" && isFinite(data.goalMinutes) && data.goalMinutes > 0 && data.goalMinutes <= 720) {
+          blank.goalMinutes = Math.round(data.goalMinutes);
+        }
+        if (typeof data.studentName === "string") {
+          blank.studentName = data.studentName.trim().slice(0, 30);
+        }
+        return blank;
+      } catch (error) {
+        return emptyState();
+      }
+    }
+
+    function saveState() {
+      try {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        return true;
+      } catch (error) {
+        showMessage("Could not save. Browser storage may be blocked.", "error");
+        return false;
+      }
+    }
+
+    function showMessage(text, type) {
+      var toast = document.getElementById("toast");
+      toast.textContent = text;
+      toast.className = "toast" + (type === "error" ? " error" : "");
+      toast.hidden = false;
+      if (messageTimer) window.clearTimeout(messageTimer);
+      messageTimer = window.setTimeout(function () {
+        toast.hidden = true;
+      }, 3200);
+    }
+
+    function completedCount() {
+      return state.tasks.filter(function (task) { return task.completed; }).length;
+    }
+
+    function completionPercent() {
+      if (state.tasks.length === 0) return null;
+      return Math.round((completedCount() / state.tasks.length) * 100);
+    }
+
+    function studyMinutesOn(dayKey) {
+      return state.sessions.reduce(function (sum, session) {
+        if (session.mode === "focus" && session.completedOn === dayKey) return sum + session.minutes;
+        return sum;
+      }, 0);
+    }
+
+    function focusCountOn(dayKey) {
+      return state.sessions.filter(function (session) {
+        return session.mode === "focus" && session.completedOn === dayKey;
+      }).length;
+    }
+
+    function lastSevenDays() {
+      var days = [];
+      var now = new Date();
+      var i;
+      for (i = 6; i >= 0; i -= 1) {
+        var date = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+        days.push({
+          key: todayKey(date),
+          short: date.toLocaleDateString("en-IN", { weekday: "short" }),
+          label: date.toLocaleDateString("en-IN", { weekday: "short", day: "numeric" }),
+          minutes: 0,
+          isToday: i === 0
+        });
+      }
+      state.sessions.forEach(function (session) {
+        if (session.mode !== "focus") return;
+        days.forEach(function (day) {
+          if (day.key === session.completedOn) day.minutes += session.minutes;
+        });
+      });
+      return days;
+    }
+
+    function motivation() {
+      var total = state.tasks.length;
+      var percent = completionPercent();
+      var studied = studyMinutesOn(todayKey());
+      var goal = state.goalMinutes;
+
+      if (total === 0 && studied === 0) {
+        return "Start with one task and one focus block. This dashboard only counts what you actually finish.";
+      }
+      if (goal && studied >= goal && percent === 100) {
+        return "Study goal reached, and the task list is clear. Leave the desk while the work is still good.";
+      }
+      if (goal && studied >= goal) {
+        return "Today’s study goal is complete. Close a pending task only if it still matters.";
+      }
+      if (total === 0) {
+        return "Focus time is on record. Add a task if you also want a completion percentage.";
+      }
+      if (percent === 0) return "The list is ready. Finish the smallest task first.";
+      if (percent < 50) return "You are under halfway. Take the nearest deadline, not the longest chapter.";
+      if (percent < 100) return "More than half the list is done. One more task, then a real break.";
+      return "Every saved task is complete. Add tomorrow’s first item if you want a clean start.";
+    }
+
+    function setRing(percent) {
+      var circle = document.getElementById("ring-value");
+      var shown = percent === null ? 0 : percent;
+      circle.style.strokeDasharray = String(RING);
+      circle.style.strokeDashoffset = String(RING * (1 - shown / 100));
+      document.getElementById("ring-percent").textContent = percent === null ? "—" : percent + "%";
+    }
+
+    function setBar(fillId, barId, ratio) {
+      var safe = Math.max(0, Math.min(1, ratio || 0));
+      document.getElementById(fillId).style.width = (safe * 100) + "%";
+      document.getElementById(barId).setAttribute("aria-valuenow", String(Math.round(safe * 100)));
+    }
+
+    function deadlineText(deadline) {
+      var today = todayKey();
+      if (deadline < today) return { text: "Overdue · " + prettyDate(deadline), overdue: true };
+      if (deadline === today) return { text: "Due today", overdue: false };
+      return { text: "Due " + prettyDate(deadline), overdue: false };
+    }
+
+    function priorityRank(priority) {
+      if (priority === "high") return 0;
+      if (priority === "medium") return 1;
+      return 2;
+    }
+
+    function sortedTasks() {
+      return state.tasks.slice().sort(function (a, b) {
+        if (a.completed !== b.completed) return a.completed ? 1 : -1;
+        if (a.deadline !== b.deadline) return a.deadline < b.deadline ? -1 : 1;
+        return priorityRank(a.priority) - priorityRank(b.priority);
+      });
+    }
+
+    function visibleTasks() {
+      return sortedTasks().filter(function (task) {
+        if (currentFilter === "pending") return !task.completed;
+        if (currentFilter === "completed") return task.completed;
+        return true;
+      });
+    }
+
+    function renderHeader() {
+      var now = new Date();
+      document.getElementById("today-label").textContent = now.toLocaleDateString("en-IN", {
+        weekday: "long", day: "numeric", month: "long", year: "numeric"
+      });
+      var hello = greeting();
+      if (state.studentName) hello += ", " + state.studentName;
+      document.getElementById("welcome").textContent = hello;
+    }
+
+    function renderDashboard() {
+      var percent = completionPercent();
+      var studied = studyMinutesOn(todayKey());
+      document.getElementById("stat-total").textContent = String(state.tasks.length);
+      document.getElementById("stat-done").textContent = String(completedCount());
+      document.getElementById("stat-time").textContent = formatMinutes(studied);
+      document.getElementById("stat-progress").textContent = percent === null ? "—" : percent + "%";
+      setRing(percent);
+      document.getElementById("motivation").textContent = motivation();
+
+      var pending = state.tasks.filter(function (task) { return !task.completed; });
+      var host = document.getElementById("dash-pending");
+      if (pending.length === 0) {
+        host.innerHTML = "<p class='empty'><strong>No pending tasks</strong>Add one when the next subject needs a deadline.</p>";
+      } else {
+        host.innerHTML = sortedTasks().filter(function (task) { return !task.completed; }).slice(0, 3).map(function (task) {
+          var due = deadlineText(task.deadline);
+          return "<p><strong>" + escapeHtml(task.title) + "</strong><br><span class='muted'>" +
+            escapeHtml(task.subject) + " · " + escapeHtml(due.text) + "</span></p>";
+        }).join("");
+      }
+
+      var goalText = document.getElementById("dash-goal");
+      if (!state.goalMinutes) {
+        goalText.textContent = "No daily goal yet. Study time today is " + formatMinutes(studied) + ".";
+        setBar("dash-fill", "dash-bar", 0);
+      } else {
+        var left = Math.max(0, state.goalMinutes - studied);
+        goalText.textContent = formatMinutes(studied) + " of " + state.goalMinutes + " min" +
+          (left === 0 ? " · goal reached" : " · " + left + " min left");
+        setBar("dash-fill", "dash-bar", studied / state.goalMinutes);
+      }
+    }
+
+    function renderTasks() {
+      var counts = {
+        all: state.tasks.length,
+        pending: state.tasks.filter(function (task) { return !task.completed; }).length,
+        completed: completedCount()
+      };
+      document.querySelectorAll("[data-filter]").forEach(function (button) {
+        var key = button.getAttribute("data-filter");
+        var label = key.charAt(0).toUpperCase() + key.slice(1);
+        button.textContent = label + " (" + counts[key] + ")";
+        button.classList.toggle("is-active", key === currentFilter);
+      });
+
+      var subjects = [];
+      state.tasks.forEach(function (task) {
+        if (subjects.indexOf(task.subject) === -1) subjects.push(task.subject);
+      });
+      document.getElementById("subject-list").innerHTML = subjects.map(function (subject) {
+        return "<option value=\"" + escapeHtml(subject) + "\"></option>";
+      }).join("");
+
+      var tasks = visibleTasks();
+      var list = document.getElementById("task-list");
+      if (state.tasks.length === 0) {
+        list.innerHTML = "<div class='empty'><strong>No tasks yet</strong>Add a title, subject, priority, and deadline. The list stays after a refresh.</div>";
+        return;
+      }
+      if (tasks.length === 0) {
+        var emptyCopy = currentFilter === "completed"
+          ? "No completed tasks yet. Mark one done and it will land here."
+          : "Nothing is pending. Add a task or check the completed filter.";
+        list.innerHTML = "<div class='empty'><strong>Nothing in this filter</strong>" + emptyCopy + "</div>";
+        return;
+      }
+
+      list.innerHTML = tasks.map(function (task) {
+        var due = deadlineText(task.deadline);
+        var action = task.completed ? "Undo" : "Done";
+        return "<article class='task" + (task.completed ? " is-done" : "") + "'>" +
+          "<div><h3>" + escapeHtml(task.title) + "</h3>" +
+          "<div class='meta'><span>" + escapeHtml(task.subject) + "</span>" +
+          "<span class='badge " + task.priority + "'>" + escapeHtml(task.priority) + "</span>" +
+          "<span class='badge" + (due.overdue && !task.completed ? " overdue" : "") + "'>" + escapeHtml(due.text) + "</span></div></div>" +
+          "<div class='row-actions'><button class='btn' type='button' data-action='toggle' data-id='" + escapeHtml(task.id) + "'>" + action + "</button>" +
+          "<button class='btn btn-danger' type='button' data-action='delete' data-id='" + escapeHtml(task.id) + "'>Delete</button></div></article>";
+      }).join("");
+    }
+
+    function renderTimer() {
+      document.getElementById("clock").textContent = formatClock(timer.remaining);
+      document.querySelectorAll("[data-mode]").forEach(function (button) {
+        button.setAttribute("aria-pressed", button.getAttribute("data-mode") === timer.mode ? "true" : "false");
+      });
+      var status = "Ready · " + timer.plannedMinutes + " min";
+      if (timer.running) status = "Running";
+      else if (timer.finished) status = "Session complete";
+      else if (timer.remaining !== timer.plannedMinutes * 60) status = "Paused";
+      document.getElementById("timer-status").textContent = status;
+
+      var today = todayKey();
+      var sessions = state.sessions.filter(function (session) { return session.completedOn === today; });
+      var host = document.getElementById("today-sessions");
+      if (sessions.length === 0) {
+        host.innerHTML = "<p class='empty'><strong>No completed sessions today</strong>Finish a countdown to record it. The 1 min demo is there so a viva does not need a 25-minute wait.</p>";
+        return;
+      }
+      host.innerHTML = "<ul class='session-list'>" + sessions.map(function (session) {
+        var kind = session.mode === "focus" ? "Focus" : "Break";
+        var extra = session.mode === "focus" ? " · counted" : " · not counted as study";
+        return "<li>" + kind + " · " + session.minutes + " min" + extra + "</li>";
+      }).join("") + "</ul>";
+    }
+
+    function buildSummary() {
+      var total = state.tasks.length;
+      var done = completedCount();
+      var percent = completionPercent();
+      var today = todayKey();
+      var minutes = studyMinutesOn(today);
+      var sessions = focusCountOn(today);
+      var text = "";
+
+      if (total === 0 && minutes === 0 && state.sessions.length === 0) {
+        return "Nothing is recorded yet. Add a task or finish a focus timer. Every figure on this page is calculated from saved activity, not sample data.";
+      }
+
+      text = "You have " + total + " task" + (total === 1 ? "" : "s") + " and " + done + " completed";
+      if (percent !== null) text += " (" + percent + "%)";
+      text += ". Today’s study time is " + formatMinutes(minutes) + " from " + sessions +
+        " completed focus session" + (sessions === 1 ? "" : "s") + ". ";
+      if (!state.goalMinutes) {
+        text += "Set a daily goal if you want a target next to that time.";
+      } else if (minutes >= state.goalMinutes) {
+        text += "The daily goal of " + state.goalMinutes + " minutes is complete.";
+      } else {
+        text += (state.goalMinutes - minutes) + " minutes remain to reach the " + state.goalMinutes + "-minute goal.";
+      }
+      return text;
+    }
+
+    function renderInsights() {
+      var percent = completionPercent();
+      var days = lastSevenDays();
+      var weekTotal = days.reduce(function (sum, day) { return sum + day.minutes; }, 0);
+      document.getElementById("summary").textContent = buildSummary();
+      document.getElementById("insight-percent").textContent = percent === null ? "—" : percent + "%";
+      document.getElementById("insight-sessions").textContent = String(focusCountOn(todayKey()));
+      document.getElementById("insight-time").textContent = formatMinutes(studyMinutesOn(todayKey()));
+      document.getElementById("insight-week").textContent = formatMinutes(weekTotal);
+      document.getElementById("week-body").innerHTML = days.map(function (day) {
+        return "<tr><th scope='row'>" + escapeHtml(day.label) + (day.isToday ? " (today)" : "") + "</th><td>" + formatMinutes(day.minutes) + "</td></tr>";
+      }).join("");
+      if (weekTotal === 0) {
+        document.getElementById("chart-note").textContent = "No completed focus time in the last 7 days. Bars stay empty until a timer finishes.";
+      } else {
+        document.getElementById("chart-note").textContent = "Teal bar is today. Navy bars are earlier days. Height follows real minutes.";
+      }
+    }
+
+    function renderGoals() {
+      document.getElementById("student-name").value = state.studentName;
+      document.getElementById("goal-minutes").value = state.goalMinutes || "";
+      var studied = studyMinutesOn(todayKey());
+      var status = document.getElementById("goal-status");
+      if (!state.goalMinutes) {
+        status.textContent = "No goal saved. Study time today is still " + formatMinutes(studied) + ".";
+        setBar("goal-fill", "goal-bar", 0);
+      } else {
+        var ratio = studied / state.goalMinutes;
+        var left = Math.max(0, state.goalMinutes - studied);
+        status.textContent = formatMinutes(studied) + " studied · goal " + state.goalMinutes + " min" +
+          (left === 0 ? " · reached" : " · " + left + " min remaining");
+        setBar("goal-fill", "goal-bar", ratio);
+      }
+    }
+
+    function renderAll() {
+      renderHeader();
+      renderDashboard();
+      renderTasks();
+      renderTimer();
+      renderInsights();
+      renderGoals();
+      if (currentView === "insights") drawWeekChart();
+    }
+
+    function showView(name) {
+      if (!document.getElementById("view-" + name)) return;
+      currentView = name;
+      document.querySelectorAll(".view").forEach(function (section) {
+        section.hidden = section.id !== "view-" + name;
+      });
+      document.querySelectorAll("[data-nav]").forEach(function (button) {
+        var on = button.getAttribute("data-nav") === name;
+        button.classList.toggle("is-active", on);
+        button.setAttribute("aria-current", on ? "page" : "false");
+      });
+      if (name === "insights") window.requestAnimationFrame(drawWeekChart);
+      window.scrollTo(0, 0);
+    }
+
+    function addTask(event) {
+      event.preventDefault();
+      var titleInput = document.getElementById("task-title");
+      var subjectInput = document.getElementById("task-subject");
+      var priority = document.getElementById("task-priority").value;
+      var deadline = document.getElementById("task-deadline").value;
+      var title = titleInput.value.trim();
+      var subject = subjectInput.value.trim();
+
+      if (!title) {
+        showMessage("Enter a task title.", "error");
+        titleInput.focus();
+        return;
+      }
+      if (!subject) {
+        showMessage("Enter a subject.", "error");
+        subjectInput.focus();
+        return;
+      }
+      if (title.length > 80 || subject.length > 40) {
+        showMessage("Use a shorter title or subject.", "error");
+        return;
+      }
+      if (!deadline || !/^\d{4}-\d{2}-\d{2}$/.test(deadline)) {
+        showMessage("Choose a deadline.", "error");
+        document.getElementById("task-deadline").focus();
+        return;
+      }
+      if (priority !== "low" && priority !== "medium" && priority !== "high") {
+        showMessage("Choose a valid priority.", "error");
+        return;
+      }
+
+      state.tasks.push({
+        id: makeId(),
+        title: title,
+        subject: subject,
+        priority: priority,
+        deadline: deadline,
+        completed: false
+      });
+      saveState();
+      document.getElementById("task-form").reset();
+      document.getElementById("task-priority").value = "medium";
+      renderAll();
+      showMessage("Task added.", "success");
+    }
+
+    function toggleTask(id) {
+      var task = state.tasks.filter(function (item) { return item.id === id; })[0];
+      if (!task) return;
+      task.completed = !task.completed;
+      saveState();
+      renderAll();
+      showMessage(task.completed ? "Marked as completed." : "Moved back to pending.", "success");
+    }
+
+    function deleteTask(id) {
+      var before = state.tasks.length;
+      state.tasks = state.tasks.filter(function (task) { return task.id !== id; });
+      if (state.tasks.length === before) return;
+      saveState();
+      renderAll();
+      showMessage("Task deleted.", "success");
+    }
+
+    function stopInterval() {
+      if (timer.intervalId !== null) {
+        window.clearInterval(timer.intervalId);
+        timer.intervalId = null;
+      }
+    }
+
+    function timerIsFresh() {
+      return !timer.running && !timer.finished && timer.remaining === timer.plannedMinutes * 60 && timer.intervalId === null;
+    }
+
+    function selectMode(mode) {
+      if (!MODE_MINUTES[mode]) return;
+      if (!timerIsFresh() && !(timer.finished && !timer.running)) {
+        showMessage("Reset the timer before choosing a different length.", "error");
+        return;
+      }
+      stopInterval();
+      timer = freshTimer(mode);
+      renderTimer();
+    }
+
+    function startTimer() {
+      if (timer.running || timer.intervalId !== null) {
+        showMessage("The timer is already running.", "error");
+        return;
+      }
+      if (timer.finished || timer.remaining <= 0) {
+        showMessage("Reset the timer, then start again.", "error");
+        return;
+      }
+      if (timer.remaining !== timer.plannedMinutes * 60) {
+        showMessage("Use Resume to continue, or Reset to start over.", "error");
+        return;
+      }
+      timer.running = true;
+      timer.finished = false;
+      timer.intervalId = window.setInterval(tick, 1000);
+      renderTimer();
+      showMessage(timer.mode === "break" ? "Break started." : "Focus started.", "success");
+    }
+
+    function pauseTimer() {
+      if (!timer.running || timer.intervalId === null) {
+        showMessage("Start the timer before you pause it.", "error");
+        return;
+      }
+      timer.running = false;
+      stopInterval();
+      renderTimer();
+      showMessage("Timer paused.", "success");
+    }
+
+    function resumeTimer() {
+      if (timer.running || timer.intervalId !== null) {
+        showMessage("The timer is already running.", "error");
+        return;
+      }
+      if (timer.finished || timer.remaining <= 0) {
+        showMessage("This session has ended. Reset to begin again.", "error");
+        return;
+      }
+      if (timer.remaining === timer.plannedMinutes * 60) {
+        showMessage("Use Start to begin this session.", "error");
+        return;
+      }
+      timer.running = true;
+      timer.intervalId = window.setInterval(tick, 1000);
+      renderTimer();
+      showMessage("Timer resumed.", "success");
+    }
+
+    function resetTimer() {
+      var mode = timer.mode;
+      stopInterval();
+      timer = freshTimer(mode);
+      renderTimer();
+      showMessage("Timer reset to " + formatClock(timer.plannedMinutes * 60) + ".", "success");
+    }
+
+    function tick() {
+      if (!timer.running) {
+        stopInterval();
+        return;
+      }
+      if (timer.remaining <= 1) {
+        timer.remaining = 0;
+        document.getElementById("clock").textContent = "00:00";
+        completeSession();
+        return;
+      }
+      timer.remaining -= 1;
+      document.getElementById("clock").textContent = formatClock(timer.remaining);
+    }
+
+    function completeSession() {
+      stopInterval();
+      timer.running = false;
+      timer.finished = true;
+      var minutes = timer.plannedMinutes;
+      if (!(minutes > 0)) return;
+      state.sessions.push({
+        id: makeId(),
+        mode: timer.mode === "break" ? "break" : "focus",
+        minutes: minutes,
+        completedOn: todayKey()
+      });
+      saveState();
+      renderAll();
+      if (timer.mode === "break") {
+        showMessage("Break complete. Breaks are not added to study time.", "success");
+      } else {
+        showMessage("Focus complete. " + minutes + " min added to today’s study time.", "success");
+      }
+    }
+
+    function saveName(event) {
+      event.preventDefault();
+      var name = document.getElementById("student-name").value.trim();
+      if (name.length > 30) {
+        showMessage("Keep the name within 30 characters.", "error");
+        return;
+      }
+      if (/[<>]/.test(name)) {
+        showMessage("Please use a name without < or >.", "error");
+        return;
+      }
+      state.studentName = name;
+      saveState();
+      renderAll();
+      showMessage(name ? "Name saved." : "Name cleared.", "success");
+    }
+
+    function saveGoal(event) {
+      event.preventDefault();
+      var raw = document.getElementById("goal-minutes").value.trim();
+      if (!raw) {
+        showMessage("Enter a daily goal in minutes.", "error");
+        return;
+      }
+      var minutes = Number(raw);
+      if (!isFinite(minutes) || minutes <= 0 || Math.round(minutes) !== minutes) {
+        showMessage("Enter a whole number of minutes greater than zero.", "error");
+        return;
+      }
+      if (minutes > 720) {
+        showMessage("Keep the daily goal at 12 hours or less.", "error");
+        return;
+      }
+      state.goalMinutes = minutes;
+      saveState();
+      renderAll();
+      showMessage("Daily goal saved. Dashboard updated.", "success");
+    }
+
+    function clearAllData() {
+      stopInterval();
+      timer = freshTimer("focus");
+      state = emptyState();
+      currentFilter = "all";
+      saveState();
+      renderAll();
+      showView("dashboard");
+      showMessage("All StudyPulse data was cleared from this browser.", "success");
+    }
+
+    function drawWeekChart() {
+      var canvas = document.getElementById("week-chart");
+      if (!canvas || canvas.parentElement.clientWidth < 20) return;
+      var ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      var days = lastSevenDays();
+      var cssWidth = canvas.parentElement.clientWidth;
+      var cssHeight = 220;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = Math.floor(cssWidth * dpr);
+      canvas.height = Math.floor(cssHeight * dpr);
+      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+      ctx.clearRect(0, 0, cssWidth, cssHeight);
+
+      var peak = days.reduce(function (max, day) { return Math.max(max, day.minutes); }, 0);
+      var axisMax = Math.max(30, peak);
+      var left = 36;
+      var bottom = 28;
+      var top = 12;
+      var plotW = cssWidth - left - 8;
+      var plotH = cssHeight - top - bottom;
+      var gap = 10;
+      var barW = Math.max(8, (plotW - gap * (days.length - 1)) / days.length);
+
+      ctx.strokeStyle = "#e4d9c8";
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      ctx.moveTo(left, top);
+      ctx.lineTo(left, top + plotH);
+      ctx.lineTo(left + plotW, top + plotH);
+      ctx.stroke();
+
+      ctx.fillStyle = "#5c6b84";
+      ctx.font = "12px Segoe UI, sans-serif";
+      ctx.textAlign = "right";
+      ctx.fillText(String(axisMax), left - 6, top + 10);
+      ctx.fillText("0", left - 6, top + plotH);
+
+      days.forEach(function (day, index) {
+        var height = (day.minutes / axisMax) * plotH;
+        var x = left + index * (barW + gap);
+        var y = top + plotH - height;
+        ctx.fillStyle = day.isToday ? "#0f6e6b" : "#1b2a4a";
+        if (height > 0) ctx.fillRect(x, y, barW, Math.max(height, 2));
+        ctx.fillStyle = "#5c6b84";
+        ctx.textAlign = "center";
+        ctx.fillText(day.short, x + barW / 2, cssHeight - 8);
+      });
+    }
+
+    function init() {
+      state = loadState();
+      // Drop broken saved records so the next refresh stays consistent.
+      try {
+        var raw = localStorage.getItem(STORAGE_KEY);
+        if (raw !== JSON.stringify(state)) saveState();
+      } catch (error) {
+        state = emptyState();
+      }
+      document.getElementById("task-form").addEventListener("submit", addTask);
+      document.getElementById("name-form").addEventListener("submit", saveName);
+      document.getElementById("goal-form").addEventListener("submit", saveGoal);
+      document.getElementById("btn-start").addEventListener("click", startTimer);
+      document.getElementById("btn-pause").addEventListener("click", pauseTimer);
+      document.getElementById("btn-resume").addEventListener("click", resumeTimer);
+      document.getElementById("btn-reset").addEventListener("click", resetTimer);
+      document.getElementById("btn-clear").addEventListener("click", function () {
+        document.getElementById("clear-dialog").showModal();
+      });
+      document.getElementById("clear-cancel").addEventListener("click", function () {
+        document.getElementById("clear-dialog").close();
+      });
+      document.getElementById("clear-confirm").addEventListener("click", function () {
+        document.getElementById("clear-dialog").close();
+        clearAllData();
+      });
+
+      document.body.addEventListener("click", function (event) {
+        var nav = event.target.closest("[data-nav]");
+        if (nav) {
+          showView(nav.getAttribute("data-nav"));
+          return;
+        }
+        var filter = event.target.closest("[data-filter]");
+        if (filter) {
+          currentFilter = filter.getAttribute("data-filter");
+          renderTasks();
+          return;
+        }
+        var mode = event.target.closest("[data-mode]");
+        if (mode) {
+          selectMode(mode.getAttribute("data-mode"));
+          return;
+        }
+        var action = event.target.closest("[data-action]");
+        if (!action) return;
+        var id = action.getAttribute("data-id");
+        if (action.getAttribute("data-action") === "toggle") toggleTask(id);
+        if (action.getAttribute("data-action") === "delete") deleteTask(id);
+      });
+
+      window.addEventListener("resize", function () {
+        if (currentView === "insights") drawWeekChart();
+      });
+
+      renderAll();
+      showView("dashboard");
+    }
+
+    init();
+  </script>
+</body>
+</html>
